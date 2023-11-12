@@ -139,10 +139,8 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
     
     // Collect the returned items, append them to the snapshot, and apply the snapshot to the data sources as they come in
     func handleFetchedItems(_ items: [StoreItem]) async {
-        let currentSnapShotItems = itemsSnapshot.itemIdentifiers
-        var updatedSnapshot = NSDiffableDataSourceSnapshot<String, StoreItem>()
-        updatedSnapshot.appendSections(["Results"])
-        updatedSnapshot.appendItems(currentSnapShotItems + items)
+        let currentSnapshotItems = itemsSnapshot.itemIdentifiers
+        let updatedSnapshot = createSectionedSnapshot(from: currentSnapshotItems + items)
         itemsSnapshot = updatedSnapshot
         await tableViewDataSource.apply(itemsSnapshot, animatingDifferences: true)
         await collectionViewDataSource.apply(itemsSnapshot, animatingDifferences: true)
