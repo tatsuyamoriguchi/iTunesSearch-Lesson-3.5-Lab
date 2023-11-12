@@ -22,7 +22,12 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
         return snapshot
     }
     
-    let queryOptions = ["movie", "music", "software", "ebook"]
+//    let queryOptions = ["movie", "music", "software", "ebook"]
+    var selectedSearchScope: SearchScope {
+        let selectedIndex = searchController.searchBar.selectedScopeButtonIndex
+        let searchScope = SearchScope.allCases[selectedIndex]
+        return searchScope
+    }
     
     // keep track of async tasks so they can be cancelled if appropriate.
     var searchTask: Task<Void, Never>? = nil
