@@ -98,7 +98,6 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
         self.items = []
         
         let searchTerm = searchController.searchBar.text ?? ""
-        let mediaType = queryOptions[searchController.searchBar.selectedScopeButtonIndex]
         
         // cancel any images that are still being fetched and reset the imageTask dictionaries
         collectionViewImageLoadTasks.values.forEach { task in task.cancel() }
