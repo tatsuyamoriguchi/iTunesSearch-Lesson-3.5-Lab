@@ -92,6 +92,15 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
         itemsSnapshot.deleteAllItems()
         let searchTerm = searchController.searchBar.text ?? ""
         
+        // Use an array of SearchScope and iterate over it to send foru requests when the search scope is All,
+        // otherwise send just one for the selected scope.
+        let searchScopes: [SearchScope]
+        if selectedSearchScope == .all {
+            searchScopes = [.movies, .music, .apps, .books]
+        } else {
+            searchScopes = [selectedSearchScope]
+        }
+        
         // cancel any images that are still being fetched and reset the imageTask dictionaries
         collectionViewImageLoadTasks.values.forEach { task in task.cancel() }
         collectionViewImageLoadTasks = [:]
@@ -133,6 +142,7 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
         }
     }
     
+    // Collect the returned items, append them to the snapshot, and apply the snapshot to the data sources as they come in
     func handleFetchedItems(_ items: [StoreItem]) async {
         await tableViewDataSource.apply(itemsSnapshot, animatingDifferences: true)
         await collectionViewDataSource.apply(itemsSnapshot, animatingDifferences: true)
