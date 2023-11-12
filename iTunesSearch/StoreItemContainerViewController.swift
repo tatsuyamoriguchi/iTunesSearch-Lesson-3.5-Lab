@@ -121,22 +121,17 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
                 ]
                 
                 do {
-                    // use the item controller to fetch items
-                    let items = try await storeItemController.fetchItems(matching: query)
-                    if searchTerm == self.searchController.searchBar.text && query["media"] == selectedSearchScope.mediaType {
-                    }
+                    try await fetchAndHandleItemsForSearchScopes(searchScopes, withSearchTerm: searchTerm)
+                
                 } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
                     // ignore cancellation errors
                 } catch {
                     // otherwise, print an error to the console
                     print(error)
                 }
-                // apply data source changes
-                await tableViewDataSource.apply(self.itemsSnapshot, animatingDifferences: true)
-                await collectionViewDataSource.apply(self.itemsSnapshot, animatingDifferences: true)
             } else {
+                await tableViewDataSource.apply(self.itemsSnapshot, animatingDifferences: true)
                 await self.tableViewDataSource.apply(self.itemsSnapshot, animatingDifferences: true)
-                await self.collectionViewDataSource.apply(self.itemsSnapshot, animatingDifferences: true)
             }
             searchTask = nil
         }
@@ -144,8 +139,63 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
     
     // Collect the returned items, append them to the snapshot, and apply the snapshot to the data sources as they come in
     func handleFetchedItems(_ items: [StoreItem]) async {
+        let currentSnapShotItems = itemsSnapshot.itemIdentifiers
+        var updatedSnapshot = NSDiffableDataSourceSnapshot<String, StoreItem>()
+        updatedSnapshot.appendSections(["Results"])
+        updatedSnapshot.appendItems(currentSnapShotItems + items)
+        itemsSnapshot = updatedSnapshot
         await tableViewDataSource.apply(itemsSnapshot, animatingDifferences: true)
         await collectionViewDataSource.apply(itemsSnapshot, animatingDifferences: true)
     }
     
+    // Iterate over searchScopes to get the resutls. Create four concurrent tasks for the selectedSearchScope is .all
+    func fetchAndHandleItemsForSearchScopes(_ searchScopes: [SearchScope], withSearchTerm searchTerm: String) async throws {
+        // Create the TaskGroup
+        try await withThrowingTaskGroup(of: (SearchScope, [StoreItem]).self) { group in
+            for searchScope in searchScopes {
+                group.addTask {
+                    try Task.checkCancellation()
+                    // Set up query dictionary
+                    let query = [
+                        "term": searchTerm,
+                        "media": searchScope.mediaType,
+                        "lang": "en_us",
+                        "limit": "50"
+                    ]
+                    return (searchScope, try await self.storeItemController.fetchItems(matching: query))
+                }
+            }
+            
+            // Run the queries
+            for try await (searchScope, items) in group {
+                try Task.checkCancellation()
+                if searchTerm == self.searchController.searchBar.text && (self.selectedSearchScope == .all || searchScope == self.selectedSearchScope) {
+                    await handleFetchedItems(items)
+                }
+            }
+        }
+    }
+    
+    func createSectionedSnapshot(from items: [StoreItem]) -> NSDiffableDataSourceSnapshot<String, StoreItem> {
+        let movies = items.filter { $0.kind == "feature-movie" }
+        let music = items.filter { $0.kind == "song" || $0.kind == "album" }
+        let apps = items.filter { $0.kind == "software" }
+        let books = items.filter { $0.kind == "ebook" }
+        
+        let grouped: [(SearchScope, [StoreItem])] = [
+            (.movies, movies),
+            (.music, music),
+            (.apps, apps),
+            (.books, books)
+        ]
+        
+        var snapshot = NSDiffableDataSourceSnapshot<String, StoreItem>()
+        grouped.forEach { (scope, items) in
+            if items.count > 0 {
+                snapshot.appendSections([scope.title])
+                snapshot.appendItems(items, toSection: scope.title)
+            }
+        }
+        return snapshot
+    }
 }
