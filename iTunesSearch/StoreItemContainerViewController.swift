@@ -89,7 +89,7 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
     
     @objc func fetchMatchingItems() {
         
-        
+        itemsSnapshot.deleteAllItems()
         let searchTerm = searchController.searchBar.text ?? ""
         
         // cancel any images that are still being fetched and reset the imageTask dictionaries
