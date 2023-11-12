@@ -133,4 +133,9 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
         }
     }
     
+    func handleFetchedItems(_ items: [StoreItem]) async {
+        await tableViewDataSource.apply(itemsSnapshot, animatingDifferences: true)
+        await collectionViewDataSource.apply(itemsSnapshot, animatingDifferences: true)
+    }
+    
 }
