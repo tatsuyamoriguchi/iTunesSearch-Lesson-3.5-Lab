@@ -121,8 +121,7 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
                 do {
                     // use the item controller to fetch items
                     let items = try await storeItemController.fetchItems(matching: query)
-                    if searchTerm == self.searchController.searchBar.text &&
-                          mediaType == queryOptions[searchController.searchBar.selectedScopeButtonIndex] {
+                    if searchTerm == self.searchController.searchBar.text && query["media"] == selectedSearchScope.mediaType {
                         self.items = items
                     }
                 } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
