@@ -113,7 +113,7 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
                 // set up query dictionary
                 let query = [
                     "term": searchTerm,
-                    "media": mediaType,
+                    "media": selectedSearchScope.mediaType,
                     "lang": "en_us",
                     "limit": "20"
                 ]
