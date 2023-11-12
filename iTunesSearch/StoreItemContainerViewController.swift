@@ -13,16 +13,10 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
     var tableViewDataSource: UITableViewDiffableDataSource<String, StoreItem>!
     var collectionViewDataSource: UICollectionViewDiffableDataSource<String, StoreItem>!
     
-    var items = [StoreItem]()
-    var itemsSnapshot: NSDiffableDataSourceSnapshot<String, StoreItem> {
-        var snapshot = NSDiffableDataSourceSnapshot<String, StoreItem>()
-        snapshot.appendSections(["Results"])
-        snapshot.appendItems(items)
-        
-        return snapshot
-    }
     
-//    let queryOptions = ["movie", "music", "software", "ebook"]
+    var itemsSnapshot = NSDiffableDataSourceSnapshot<String, StoreItem>()
+    
+    
     var selectedSearchScope: SearchScope {
         let selectedIndex = searchController.searchBar.selectedScopeButtonIndex
         let searchScope = SearchScope.allCases[selectedIndex]
@@ -95,7 +89,6 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
     
     @objc func fetchMatchingItems() {
         
-        self.items = []
         
         let searchTerm = searchController.searchBar.text ?? ""
         
@@ -122,7 +115,6 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
                     // use the item controller to fetch items
                     let items = try await storeItemController.fetchItems(matching: query)
                     if searchTerm == self.searchController.searchBar.text && query["media"] == selectedSearchScope.mediaType {
-                        self.items = items
                     }
                 } catch let error as NSError where error.domain == NSURLErrorDomain && error.code == NSURLErrorCancelled {
                     // ignore cancellation errors
