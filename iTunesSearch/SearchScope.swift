@@ -13,8 +13,8 @@ enum SearchScope: CaseIterable {
     var title: String {
         switch self {
         case .all: return "All"
-        case .music: return "Music"
         case .movies: return "Movies"
+        case .music: return "Music"
         case .apps: return "Apps"
         case .books: return "Books"
         }
