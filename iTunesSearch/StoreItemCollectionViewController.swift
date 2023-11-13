@@ -17,6 +17,8 @@ class StoreItemCollectionViewController: UICollectionViewController {
         section.interGroupSpacing = 8
         
         collectionView.collectionViewLayout = UICollectionViewCompositionalLayout(section: section)
+        
+        collectionView.register(StoreItemCollectionViewSectionHeader.self, forSupplementaryViewOfKind: "Header", withReuseIdentifier: StoreItemCollectionViewSectionHeader.reuseIdentifier)
     }
     
 }

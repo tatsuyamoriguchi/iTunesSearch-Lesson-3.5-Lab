@@ -10,12 +10,9 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
     let searchController = UISearchController()
     let storeItemController = StoreItemController()
 
-    var tableViewDataSource: UITableViewDiffableDataSource<String, StoreItem>!
+    var tableViewDataSource: StoreItemTableViewDiffableDataSource!
     var collectionViewDataSource: UICollectionViewDiffableDataSource<String, StoreItem>!
-    
-    
     var itemsSnapshot = NSDiffableDataSourceSnapshot<String, StoreItem>()
-    
     
     var selectedSearchScope: SearchScope {
         let selectedIndex = searchController.searchBar.selectedScopeButtonIndex
@@ -50,7 +47,8 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
     }
     
     func configureTableViewDataSource(_ tableView: UITableView) {
-        tableViewDataSource = UITableViewDiffableDataSource<String, StoreItem>(tableView: tableView, cellProvider: { (tableView, indexPath, item) -> UITableViewCell? in
+                              
+        tableViewDataSource = StoreItemTableViewDiffableDataSource(tableView: tableView, cellProvider: { (tableView, indexPath, item) -> UITableViewCell? in
             let cell = tableView.dequeueReusableCell(withIdentifier: "Item", for: indexPath) as! ItemTableViewCell
             
             self.tableViewImageLoadTasks[indexPath]?.cancel()
@@ -64,8 +62,10 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
     }
     
     func configureCollectionViewDataSource(_ collectionView: UICollectionView) {
+        
         collectionViewDataSource = .init(collectionView: collectionView, cellProvider: { (collectionView, indexPath, item) -> UICollectionViewCell? in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "Item", for: indexPath) as! ItemCollectionViewCell
+            
             
             self.collectionViewImageLoadTasks[indexPath]?.cancel()
             self.collectionViewImageLoadTasks[indexPath] = Task {
@@ -75,6 +75,19 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
             
             return cell
         })
+
+        collectionViewDataSource.supplementaryViewProvider = {
+            collectionView, kind, indexPath -> UICollectionReusableView? in
+            
+            let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: "Header", withReuseIdentifier: StoreItemCollectionViewSectionHeader.reuseIdentifier, for: indexPath) as! StoreItemCollectionViewSectionHeader
+            
+            let title = self.itemsSnapshot.sectionIdentifiers[indexPath.section]
+            headerView.setTitle(title)
+            
+            
+            return headerView
+        }
+
     }
     
     func updateSearchResults(for searchController: UISearchController) {
@@ -113,12 +126,12 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
             if !searchTerm.isEmpty {
                 
                 // set up query dictionary
-                let query = [
-                    "term": searchTerm,
-                    "media": selectedSearchScope.mediaType,
-                    "lang": "en_us",
-                    "limit": "20"
-                ]
+//                let query = [
+//                    "term": searchTerm,
+//                    "media": selectedSearchScope.mediaType,
+//                    "lang": "en_us",
+//                    "limit": "20"
+//                ]
                 
                 do {
                     try await fetchAndHandleItemsForSearchScopes(searchScopes, withSearchTerm: searchTerm)
