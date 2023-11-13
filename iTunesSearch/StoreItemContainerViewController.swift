@@ -42,6 +42,8 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
         }
         
         if let collectionViewController = segue.destination as? StoreItemCollectionViewController {
+
+            collectionViewController.configureCollectionViewLayout(for: selectedSearchScope)
             configureCollectionViewDataSource(collectionViewController.collectionView)
         }
     }
