@@ -25,6 +25,9 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
     var tableViewImageLoadTasks: [IndexPath: Task<Void, Never>] = [:]
     var collectionViewImageLoadTasks: [IndexPath: Task<Void, Never>] = [:]
     
+    // A reference to the collection view controller to update the layout for new search scopes
+    weak var collecitonViewContoller: StoreItemCollectionViewController?
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -45,7 +48,11 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
 
             collectionViewController.configureCollectionViewLayout(for: selectedSearchScope)
             configureCollectionViewDataSource(collectionViewController.collectionView)
+            
+            self.collecitonViewContoller = collectionViewController
         }
+        
+        
     }
     
     func configureTableViewDataSource(_ tableView: UITableView) {
@@ -157,6 +164,9 @@ class StoreItemContainerViewController: UIViewController, UISearchResultsUpdatin
         let currentSnapshotItems = itemsSnapshot.itemIdentifiers
         let updatedSnapshot = createSectionedSnapshot(from: currentSnapshotItems + items)
         itemsSnapshot = updatedSnapshot
+        
+        collecitonViewContoller?.configureCollectionViewLayout(for: selectedSearchScope)
+        
         await tableViewDataSource.apply(itemsSnapshot, animatingDifferences: true)
         await collectionViewDataSource.apply(itemsSnapshot, animatingDifferences: true)
     }
